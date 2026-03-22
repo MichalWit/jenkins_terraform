@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+  jenkins:
+    build: .
+    container_name: jenkins_terraform
+    user: jenkins
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - ./jenkins_home:/var/jenkins_home
+      - ./test_repo:/home/jenkins/test_repo
+      - $DOCKER_SOCK:/var/run/docker.sock
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
+    restart: unless-stopped
+
+  gitea:
+    image: gitea/gitea:latest
+    container_name: gitea
+    #user: gitea
+    environment:
+      # Prevent UI setup wizard
+      - GITEA__security__INSTALL_LOCK=true
+
+      # Database config (required)
+      - GITEA__database__DB_TYPE=sqlite3
+      - GITEA__database__PATH=/data/gitea/gitea.db
+
+      # Server settings
+      - GITEA__server__DOMAIN=localhost
+      - GITEA__server__ROOT_URL=http://localhost:3000/
+      - GITEA__server__HTTP_PORT=3000
+
+      # Admin user (optional if using API / curl later)
+      - GITEA__admin__USER=admin
+      - GITEA__admin__PASSWORD=admin123
+      - GITEA__admin__EMAIL=admin@test.com
+    ports:
+      - "3000:3000"
+      - "2222:22"
+    volumes:
+      - ./gitea-init:/docker-entrypoint-init.d
+      - ./terraform-repo.git:/data/git/repositories/admin/terraform-repo.git
+#      - ./gitea_data:/data
+
+#volumes:
+#  jenkins_home:

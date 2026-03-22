@@ -1,0 +1,55 @@
+pipeline {
+    agent any
+
+    environment {
+        TERRAFORM_IMAGE = "hashicorp/terraform:1.8.5"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Terraform Init') {
+            steps {
+                sh """
+                docker run --rm \
+                  -v \$PWD:/workspace \
+                  -w /workspace \
+                  ${TERRAFORM_IMAGE} init
+                """
+            }
+        }
+
+        stage('Terraform Plan') {
+            steps {
+                sh """
+                docker run --rm \
+                  -v \$PWD:/workspace \
+                  -w /workspace \
+                  ${TERRAFORM_IMAGE} plan -out=tfplan
+                """
+            }
+        }
+
+        stage('Approval') {
+            steps {
+                input message: 'Apply Terraform changes?', ok: 'Apply'
+            }
+        }
+
+        stage('Terraform Apply') {
+            steps {
+                sh """
+                docker run --rm \
+                  -v \$PWD:/workspace \
+                  -w /workspace \
+                  ${TERRAFORM_IMAGE} apply -auto-approve tfplan
+                """
+            }
+        }
+    }
+}
