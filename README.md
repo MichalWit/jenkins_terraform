@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# terraform-repo
-
 Terraform project
 =======
 ## To allow repo volume
@@ -15,4 +12,3 @@ git config --global --add safe.directory /Users/michal.wit/personalspace/jenkins
 git clone --bare . ../terraform-repo.git
 sudo chown -R 1000:1000 terraform-repo.git
 ```
->>>>>>> 735effb (Add gitea)
