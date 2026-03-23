@@ -4,7 +4,8 @@ services:
   # Full Docker engine for Jenkins jobs (no host socket / GID setup).
   # Same jenkins_home mount so `docker run -v /var/jenkins_home/workspace/...` works.
   dockerdind:
-    image: docker:dind
+    build: ./dockerdind
+    image: jenkins_terraform_dind:local
     container_name: jenkins_terraform_dind
     privileged: true
     restart: unless-stopped
