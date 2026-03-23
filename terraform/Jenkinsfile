@@ -1,8 +1,20 @@
+/* DinD: inner terraform containers often need explicit DNS to reach registry.terraform.io */
 pipeline {
     agent any
 
     environment {
         TERRAFORM_IMAGE = "hashicorp/terraform:1.14.7"
+
+        //  Those flags tell Docker how to configure DNS inside that container’s /etc/resolv.conf.
+        //    --dns 8.8.8.8 — use Google’s public DNS server 8.8.8.8 as one nameserver.
+        //    --dns 8.8.4.4 — add a second nameserver (Google’s backup), which helps if one is slow or unreachable.
+        //  So when something in the container (here, Terraform talking to registry.terraform.io) needs to resolve
+        //    a hostname to an IP, it uses these servers instead of only whatever the Docker default would inject
+        //    (often the embedded resolver 127.0.0.11, which can misbehave in nested / DinD setups).
+        //  They don’t change routing or firewalls; they only affect DNS lookup for names like registry.terraform.io.
+
+        // Nested docker (DinD): default DNS often fails for registry.terraform.io — explicit DNS + timeout.
+        TF_DOCKER_OPTS = "--dns 8.8.8.8 --dns 8.8.4.4 -e TF_REGISTRY_CLIENT_TIMEOUT=120"
     }
 
     stages {
@@ -16,7 +28,7 @@ pipeline {
         stage('Terraform Init') {
             steps {
                 sh """
-                docker run --rm \
+                docker run --rm ${TF_DOCKER_OPTS} \
                   -v \$PWD:/workspace \
                   -w /workspace \
                   ${TERRAFORM_IMAGE} init
@@ -27,7 +39,7 @@ pipeline {
         stage('Terraform Plan') {
             steps {
                 sh """
-                docker run --rm \
+                docker run --rm ${TF_DOCKER_OPTS} \
                   -v \$PWD:/workspace \
                   -w /workspace \
                   ${TERRAFORM_IMAGE} plan -out=tfplan
@@ -44,7 +56,7 @@ pipeline {
         stage('Terraform Apply') {
             steps {
                 sh """
-                docker run --rm \
+                docker run --rm ${TF_DOCKER_OPTS} \
                   -v \$PWD:/workspace \
                   -w /workspace \
                   ${TERRAFORM_IMAGE} apply -auto-approve tfplan
