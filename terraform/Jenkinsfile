@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        TERRAFORM_IMAGE = "hashicorp/terraform:1.8.5"
+        TERRAFORM_IMAGE = "hashicorp/terraform:1.14.7"
     }
 
     stages {
