@@ -35,10 +35,10 @@ services:
       - GITEA__server__HTTP_PORT=$G_HTTP_PORT
 
       # Admin user (optional if using API / curl later)
-      - G_USER=admin
-      - G_PASS=admin123
-      - G_EMAIL=admin@test.com
-      - G_REPO_NAME=terraform-test
+      - G_USER=$G_USER
+      - G_PASS=$G_PASS
+      - G_EMAIL=$G_EMAIL
+      - G_REPO_NAME=$G_REPO_NAME
     ports:
       - "$G_HTTP_PORT:$G_HTTP_PORT"
       - "2222:22"
