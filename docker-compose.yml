@@ -2,15 +2,14 @@ version: "3.9"
 
 services:
   jenkins:
-    build: .
+    build: ./jenkins
     container_name: jenkins_terraform
     user: jenkins
     ports:
       - "$J_HTTP_PORT:$J_HTTP_PORT"
       - "50000:50000"
     volumes:
-      - ./jenkins_home:/var/jenkins_home
-      - ./test_repo:/home/jenkins/test_repo
+      - ./jenkins/jenkins_home:/var/jenkins_home
       - $DOCKER_SOCK:/var/run/docker.sock
     environment:
       - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
