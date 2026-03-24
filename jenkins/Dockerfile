@@ -5,9 +5,6 @@ RUN id
 
 USER root
 RUN chown -R jenkins:jenkins /var/jenkins_home
-#RUN mkdir -p /home/jenkins/test_repo
-#RUN chown -R jenkins:jenkins /home/jenkins/test_repo
-#RUN git config --global --add safe.directory /home/jenkins/test_repo/.git
 
 # Bind-mounted jenkins_home: host UID/Git; global config in /var/jenkins_home is hidden by the mount.
 RUN printf '[safe]\n\tdirectory = *\n' > /etc/gitconfig
