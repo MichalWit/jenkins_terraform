@@ -1,33 +1,9 @@
 version: "3.9"
 
 services:
-  # Full Docker engine for Jenkins jobs (no host socket / GID setup).
-  # Same jenkins_home mount so `docker run -v /var/jenkins_home/workspace/...` works.
-  dockerdind:
-    build: ./dockerdind
-    image: jenkins_terraform_dind:local
-    container_name: jenkins_terraform_dind
-    privileged: true
-    restart: unless-stopped
-    environment:
-      DOCKER_TLS_CERTDIR: ""
-    volumes:
-      - ./jenkins/jenkins_home:/var/jenkins_home
-      - dind-data:/var/lib/docker
-    healthcheck:
-      test: ["CMD", "docker", "info"]
-      interval: 5s
-      timeout: 5s
-      retries: 6
-      start_period: 15s
-
   jenkins:
     build: ./jenkins
     container_name: jenkins_terraform
-    user: jenkins
-    depends_on:
-      dockerdind:
-        condition: service_healthy
     ports:
       - "$J_HTTP_PORT:$J_HTTP_PORT"
       - "50000:50000"
@@ -36,7 +12,6 @@ services:
     environment:
       - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
       - JENKINS_OPTS="--httpPort=${J_HTTP_PORT}"
-      - DOCKER_HOST=tcp://dockerdind:2375
     restart: unless-stopped
 
   gitea:
@@ -69,6 +44,3 @@ services:
       - ./gitea/entrypoint.sh:/entrypoint.sh
     command: ["sh", "/entrypoint.sh"]
 #      - ./gitea_data:/data
-
-volumes:
-  dind-data:
