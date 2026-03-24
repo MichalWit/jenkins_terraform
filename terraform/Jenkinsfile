@@ -1,6 +1,9 @@
-/* Terraform runs on the Jenkins agent (binary in image). No Docker-in-Docker / host socket. */
 pipeline {
     agent any
+
+    environment {
+        TERRAFORM_IMAGE = "hashicorp/terraform:1.14.7"
+    }
 
     stages {
 
@@ -12,13 +15,18 @@ pipeline {
 
         stage('Terraform Init') {
             steps {
-                sh 'terraform init'
+                sh """docker run --rm -v \$PWD:/workspace -w /workspace ${TERRAFORM_IMAGE} init"""
             }
         }
 
         stage('Terraform Plan') {
             steps {
-                sh 'terraform plan -out=tfplan'
+                sh """
+                docker run --rm \
+                  -v \$PWD:/workspace \
+                  -w /workspace \
+                  ${TERRAFORM_IMAGE} plan -out=tfplan
+                """
             }
         }
 
@@ -30,8 +38,14 @@ pipeline {
 
         stage('Terraform Apply') {
             steps {
-                sh 'terraform apply -auto-approve tfplan'
+                sh """
+                docker run --rm \
+                  -v \$PWD:/workspace \
+                  -w /workspace \
+                  ${TERRAFORM_IMAGE} apply -auto-approve tfplan
+                """
             }
         }
     }
 }
+

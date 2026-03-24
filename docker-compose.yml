@@ -4,11 +4,14 @@ services:
   jenkins:
     build: ./jenkins
     container_name: jenkins_terraform
+    # Required for dockerd inside the container (nested cgroups / iptables).
+    privileged: true
     ports:
       - "$J_HTTP_PORT:$J_HTTP_PORT"
       - "50000:50000"
     volumes:
       - ./jenkins/jenkins_home:/var/jenkins_home
+      - jenkins-docker-lib:/var/lib/docker
     environment:
       - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
       - JENKINS_OPTS="--httpPort=${J_HTTP_PORT}"
@@ -44,3 +47,6 @@ services:
       - ./gitea/entrypoint.sh:/entrypoint.sh
     command: ["sh", "/entrypoint.sh"]
 #      - ./gitea_data:/data
+
+volumes:
+  jenkins-docker-lib:
