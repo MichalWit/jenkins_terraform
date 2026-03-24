@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         TERRAFORM_IMAGE = "hashicorp/terraform:1.14.7"
+        DOCKER_HOST = 'tcp://dockerdind:2375'
     }
 
     stages {

@@ -1,20 +1,39 @@
 version: "3.9"
 
 services:
+  # Docker Engine; same jenkins_home mount so `docker run -v /var/jenkins_home/workspace/...` resolves on the daemon.
+  dockerdind:
+    image: docker:dind
+    container_name: jenkins_terraform_dind
+    privileged: true
+    restart: unless-stopped
+    environment:
+      DOCKER_TLS_CERTDIR: ""
+    volumes:
+      - ./jenkins/jenkins_home:/var/jenkins_home
+      - dind-data:/var/lib/docker
+    healthcheck:
+      test: ["CMD", "docker", "info"]
+      interval: 5s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+
   jenkins:
     build: ./jenkins
     container_name: jenkins_terraform
-    # Required for dockerd inside the container (nested cgroups / iptables).
-    privileged: true
+    depends_on:
+      dockerdind:
+        condition: service_healthy
     ports:
       - "$J_HTTP_PORT:$J_HTTP_PORT"
       - "50000:50000"
     volumes:
       - ./jenkins/jenkins_home:/var/jenkins_home
-      - jenkins-docker-lib:/var/lib/docker
     environment:
       - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
       - JENKINS_OPTS="--httpPort=${J_HTTP_PORT}"
+      - DOCKER_HOST=tcp://dockerdind:2375
     restart: unless-stopped
 
   gitea:
@@ -47,4 +66,4 @@ services:
     command: ["sh", "/entrypoint.sh"]
 
 volumes:
-  jenkins-docker-lib:
+  dind-data:
