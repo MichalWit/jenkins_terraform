@@ -1,7 +1,19 @@
 Terraform project
 =======
 
-## To initialize terraform workspace
+## (re)build and run
+
+### ALL
+```shell
+./scripts/rebuild_run_and_push.sh
+```
+
+### Only gitea
+```shell
+./scripts/rebuild_run_and_push.sh gitea
+```
+
+## To initialize terraform workspace (inside jenkins server)
 
 1. 
 ```shell
