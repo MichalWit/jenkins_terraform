@@ -20,7 +20,6 @@ services:
   gitea:
     image: gitea/gitea:1.25
     container_name: gitea
-    #user: gitea
     environment:
       # Prevent UI setup wizard
       - GITEA__security__INSTALL_LOCK=true
@@ -46,7 +45,6 @@ services:
       - ./gitea/init.sh:/init.sh
       - ./gitea/entrypoint.sh:/entrypoint.sh
     command: ["sh", "/entrypoint.sh"]
-#      - ./gitea_data:/data
 
 volumes:
   jenkins-docker-lib:
