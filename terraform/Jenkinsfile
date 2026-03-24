@@ -21,12 +21,7 @@ pipeline {
 
         stage('Terraform Plan') {
             steps {
-                sh """
-                docker run --rm \
-                  -v \$PWD:/workspace \
-                  -w /workspace \
-                  ${TERRAFORM_IMAGE} plan -out=tfplan
-                """
+                sh """docker run --rm -v \$PWD:/workspace -w /workspace ${TERRAFORM_IMAGE} plan -out=tfplan"""
             }
         }
 
@@ -38,13 +33,19 @@ pipeline {
 
         stage('Terraform Apply') {
             steps {
-                sh """
-                docker run --rm \
-                  -v \$PWD:/workspace \
-                  -w /workspace \
-                  ${TERRAFORM_IMAGE} apply -auto-approve tfplan
-                """
+                sh """docker run --rm -v \$PWD:/workspace -w /workspace ${TERRAFORM_IMAGE} apply -auto-approve tfplan"""
             }
+        }
+    }
+
+    post {
+        always {
+            echo 'Cleaning up workspace...'
+            sh """ls -la ${WORKSPACE}"""
+            cleanWs()
+            sh 'printenv'
+            echo 'after cleanWs'
+            sh """ls -la ${WORKSPACE}"""
         }
     }
 }

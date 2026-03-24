@@ -1,20 +1,19 @@
 FROM jenkins/jenkins:lts
 
-ARG TERRAFORM_VERSION=1.14.7
-
 USER jenkins
 RUN id
 
 USER root
 RUN chown -R jenkins:jenkins /var/jenkins_home
-RUN mkdir -p /home/jenkins/test_repo
-RUN chown -R jenkins:jenkins /home/jenkins/test_repo
-RUN git config --global --add safe.directory /home/jenkins/test_repo/.git
+#RUN mkdir -p /home/jenkins/test_repo
+#RUN chown -R jenkins:jenkins /home/jenkins/test_repo
+#RUN git config --global --add safe.directory /home/jenkins/test_repo/.git
+
 # Bind-mounted jenkins_home: host UID/Git; global config in /var/jenkins_home is hidden by the mount.
 RUN printf '[safe]\n\tdirectory = *\n' > /etc/gitconfig
 
-# Docker Engine (dockerd) + CLI + Terraform (HashiCorp zip).
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl unzip gosu \
+# Docker Engine (dockerd) + CLI. Pipelines use `docker run hashicorp/terraform:…` — no terraform binary here.
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl gosu \
   && install -m 0755 -d /etc/apt/keyrings \
   && curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc \
   && chmod a+r /etc/apt/keyrings/docker.asc \
@@ -23,13 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
   && apt-get install -y --no-install-recommends docker-ce docker-ce-cli containerd.io \
   && groupadd -f docker \
   && usermod -aG docker jenkins \
-  && ARCH=$(dpkg --print-architecture) \
-  && case "$ARCH" in amd64) TF_ARCH=amd64 ;; arm64) TF_ARCH=arm64 ;; *) echo "unsupported arch: $ARCH" >&2; exit 1 ;; esac \
-  && curl -fsSL "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_${TF_ARCH}.zip" -o /tmp/terraform.zip \
-  && unzip -o /tmp/terraform.zip -d /usr/local/bin \
-  && rm /tmp/terraform.zip \
   && rm -rf /var/lib/apt/lists/* \
-  && terraform version \
   && docker --version
 
 COPY jenkins-dockerd-entrypoint.sh /usr/local/bin/jenkins-dockerd-entrypoint.sh
