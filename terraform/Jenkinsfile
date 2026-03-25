@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         TERRAFORM_IMAGE = "hashicorp/terraform:1.14.7"
+        DOCKER_HOST = 'tcp://dockerdind:2375'
     }
 
     stages {
@@ -36,6 +37,24 @@ pipeline {
                 sh """docker run --rm -v \$PWD:/workspace -w /workspace ${TERRAFORM_IMAGE} apply -auto-approve tfplan"""
             }
         }
+
+        // Multibranch uses detached HEAD; push with BRANCH_NAME not git rev-parse.
+        stage('Commit and push apply') {
+            steps {
+                sh """
+                    git config user.email "jenkins@localhost"
+                    git config user.name "Jenkins CI"
+                    git add -A
+                    if git diff --staged --quiet; then
+                      echo "No changes to commit after apply."
+                    else
+                      MSG=\$(date -u +%Y-%m-%dT%H:%M:%SZ)
+                      git commit -m "Terraform Apply [\$MSG]"
+                      git push origin HEAD:${env.BRANCH_NAME ?: 'main'}
+                    fi
+                """
+            }
+        }
     }
 
     post {
@@ -43,7 +62,6 @@ pipeline {
             echo 'Cleaning up workspace...'
             sh """ls -la ${WORKSPACE}"""
             cleanWs()
-            sh 'printenv'
             echo 'after cleanWs'
             sh """ls -la ${WORKSPACE}"""
         }
