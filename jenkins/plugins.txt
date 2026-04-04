@@ -3,3 +3,5 @@ workflow-multibranch
 docker-workflow
 pipeline-input-step
 ws-cleanup
+configuration-as-code
+job-dsl

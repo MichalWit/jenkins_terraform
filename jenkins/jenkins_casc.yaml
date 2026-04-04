@@ -1,0 +1,21 @@
+jobs:
+  - script: >
+      pipelineJob('auto-job') {
+        definition {
+          cps {
+            script("""
+              pipeline {
+                agent any
+                stages {
+                  stage('Auto') {
+                    steps {
+                      echo 'Created automatically'
+                    }
+                  }
+                }
+              }
+            """)
+            sandbox()
+          }
+        }
+      }

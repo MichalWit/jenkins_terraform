@@ -10,11 +10,13 @@ services:
       - "$J_HTTP_PORT:$J_HTTP_PORT"
       - "50000:50000"
     volumes:
+      - ./jenkins/jenkins_casc.yaml:/home/jenkins/jenkins_casc.yaml
       - ./jenkins/jenkins_home:/var/jenkins_home
       - jenkins-docker-lib:/var/lib/docker
     environment:
       - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
       - JENKINS_OPTS="--httpPort=${J_HTTP_PORT}"
+      - CASC_JENKINS_CONFIG=/home/jenkins/jenkins_casc.yaml
     restart: unless-stopped
 
   gitea:
